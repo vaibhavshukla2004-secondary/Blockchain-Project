@@ -48,7 +48,7 @@ Do not commit deployment-specific ABI data or the contract address in source cod
 3.Connect IDE to MetaMask Account and Deploy the Smart Contract \
 4.Get ABI Code and Smart Contract Address from Deployment \
 5.Paste ABI Code and Smart Contract Address in frontend Files \
-6.Host Frontend Files Locally to Interact with deployed Contract and Meta Mask \
+6.Host Frontend Files Locally to Interact with deployed Contract and Meta Mask 
 
 
 ## Deployment Network : Sepolia 
