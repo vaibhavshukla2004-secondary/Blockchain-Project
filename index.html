@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decentralized Room Booking</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #111827;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+        }
+
+        .btn-success {
+            background-color: #10b981;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+        }
+
+        .manager-panel {
+            background: #fef3c7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .room-card {
+            border: 1px solid #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .room-info p {
+            margin: 4px 0;
+            color: #4b5563;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-0 {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Available */
+        .status-1 {
+            background: #fef08a;
+            color: #854d0e;
+        }
+
+        /* Booked */
+        .status-2 {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Occupied */
+        .unavailable-text {
+            color: #9ca3af;
+            font-style: italic;
+            font-size: 14px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Room Booking DApp</h1>
+        <div style="text-align: center; margin-bottom: 24px;">
+            <button class="btn" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+            <p id="walletInfo" style="color: #6b7280; font-size: 14px;"></p>
+            <p id="feeInfo" style="color: #6b7280; font-size: 14px; margin-top: 5px;"></p>
+        </div>
+
+        <!-- Manager Only Panel -->
+        <div id="managerPanel" class="manager-panel">
+            <h2>Manager Dashboard</h2>
+            <div>
+                <h3>Add New Room</h3>
+                <input type="text" id="newRoomName" placeholder="Room Name (e.g. Suite A)">
+                <input type="number" id="newRoomPrice" placeholder="Total Price in ETH (e.g. 0.05)" step="0.001">
+                <button class="btn" onclick="addRoom()">Add Room</button>
+            </div>
+        </div>
+
+        <!-- Room List -->
+        <h2>Rooms</h2>
+        <div id="roomList"></div>
+    </div>
+
+    <script>
+        let web3;
+        let contract;
+        let userAccount;
+        let managerAccount;
+        let bookingFeeWei;
+        let bookingFeeEth;
+
+        // REPLACE WITH YOUR NEW DEPLOYED CONTRACT ADDRESS
+        const CONTRACT_ADDRESS = '0xYourContractAddress';
+
+        // Updated ABI matching the new Smart Contract
+        const ABI = [];
+
+        const statusMap = ["Available", "Booked", "Occupied"];
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+
+                document.getElementById('connectBtn').style.display = 'none';
+                document.getElementById('walletInfo').innerText = `Connected: ${userAccount}`;
+
+                await fetchContractData();
+                loadRooms();
+            } else {
+                alert('Please install MetaMask');
+            }
+        }
+
+        async function fetchContractData() {
+            // Fetch manager address
+            managerAccount = await contract.methods.manager().call();
+            if (userAccount.toLowerCase() === managerAccount.toLowerCase()) {
+                document.getElementById('managerPanel').style.display = 'block';
+            }
+
+            // Fetch dynamic booking fee from contract
+            bookingFeeWei = await contract.methods.bookingFee().call();
+            bookingFeeEth = web3.utils.fromWei(bookingFeeWei, 'ether');
+            document.getElementById('feeInfo').innerText = `Current Booking Deposit Fee: ${bookingFeeEth} ETH`;
+        }
+
+        async function loadRooms() {
+            const roomList = document.getElementById('roomList');
+            roomList.innerHTML = '';
+            const count = await contract.methods.roomCount().call();
+            const isManager = (userAccount.toLowerCase() === managerAccount.toLowerCase());
+
+            for (let i = 1; i <= count; i++) {
+                const room = await contract.methods.rooms(i).call();
+                if (room.id == 0) continue; // Skip deleted rooms
+
+                const priceETH = web3.utils.fromWei(room.price, 'ether');
+                const isOccupant = (room.occupant.toLowerCase() === userAccount.toLowerCase());
+
+                let actions = '';
+
+                // Render buttons based on role and status
+                if (isManager) {
+                    if (room.status == 0) { // Available
+                        actions = `<button class="btn btn-outline" onclick="deleteRoom(${room.id})">Delete Room</button>`;
+                    } 
+                } else {
+                    if (room.status == 0) {
+                        // Available to everyone
+                        actions = `<button class="btn btn-success" onclick="bookRoom(${room.id})">Book Deposit (${bookingFeeEth} ETH)</button>`;
+                    } else if (room.status == 1 && isOccupant) {
+                        // Booked by me -> Pay full price to occupy
+                        actions = `<button class="btn btn-success" onclick="occupyRoom(${room.id}, '${priceETH}')">Pay Full (${priceETH} ETH)</button>`;
+                    } else if (room.status == 2 && isOccupant) {
+                        // Occupied by me -> Checkout
+                        actions = `<button class="btn btn-danger" onclick="releaseRoom(${room.id})">Checkout / Release</button>`;
+                    } else {
+                        // Booked or Occupied by someone else
+                        actions = `<span class="unavailable-text">Unavailable</span>`;
+                    }
+                }
+
+                const roomHTML = `
+                <div class="room-card">
+                    <div class="room-info">
+                        <h3>${room.name} <span class="badge status-${room.status}">${statusMap[room.status]}</span></h3>
+                        <p>ID: ${room.id} | Total Price: ${priceETH} ETH</p>
+                        <p style="font-size: 12px;">Occupant: ${room.occupant !== '0x0000000000000000000000000000000000000000' ? room.occupant : 'None'}</p>
+                    </div>
+                    <div>${actions}</div>
+                </div>
+            `;
+                roomList.innerHTML += roomHTML;
+            }
+        }
+
+        // --- MANAGER FUNCTIONS ---
+        async function addRoom() {
+            const name = document.getElementById('newRoomName').value;
+            const price = document.getElementById('newRoomPrice').value;
+            const priceWei = web3.utils.toWei(String(price), 'ether');
+            await contract.methods.addRoom(name, priceWei).send({ from: userAccount });
+            loadRooms();
+        }
+
+        async function deleteRoom(id) {
+            await contract.methods.deleteRoom(id).send({ from: userAccount });
+            loadRooms();
+        }
+
+        // --- USER FUNCTIONS ---
+        async function bookRoom(id) {
+            // Sends the exact fetched booking fee (in Wei)
+            await contract.methods.bookRoom(id).send({ from: userAccount, value: bookingFeeWei });
+            loadRooms();
+        }
+
+        async function occupyRoom(id, priceETH) {
+            // Sends the full room price (in Wei)
+            const priceWei = web3.utils.toWei(String(priceETH), 'ether');
+            await contract.methods.occupyRoom(id).send({ from: userAccount, value: priceWei });
+            loadRooms();
+        }
+
+        async function releaseRoom(id) {
+            await contract.methods.releaseRoom(id).send({ from: userAccount });
+            loadRooms();
+        }
+    </script>
+
+</body>
+
+</html>
