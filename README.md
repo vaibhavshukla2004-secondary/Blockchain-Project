@@ -49,14 +49,14 @@ Do not commit deployment-specific ABI data or the contract address in source cod
 4.Get ABI Code and Smart Contract Address from Deployment \
 5.Paste ABI Code and Smart Contract Address in frontend Files \
 6.Host Frontend Files Locally to Interact with deployed Contract and Meta Mask \
-\\
+\
 
 
 ## Deployment Network : Sepolia 
-\\
-It is deployed on a testnet network called Sepolia, uses SepoliaETH.\\ 
+
+It is deployed on a testnet network called Sepolia, uses SepoliaETH.\
 
 ## Tests 
 
-1.Valid Test - Manager Adds A room \\
-2.Invalid Test - Manager Tries to Remove a room that doesn't exist \\
+1.Valid Test - Manager Adds A room \
+2.Invalid Test - Manager Tries to Remove a room that doesn't exist \
