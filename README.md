@@ -43,15 +43,20 @@ Do not commit deployment-specific ABI data or the contract address in source cod
 
 ## Steps to connect MetaMask and interact with the smart contract
 
-1.Write Smart Contract Code in IDE
-2.Compile Smart Contract Code
-3.Connect IDE to MetaMask Account and Deploy the Smart Contract
-4.Get ABI Code and Smart Contract Address from Deployment 
-5.Paste ABI Code and Smart Contract Address in frontend Files
-6.Host Frontend Files Locally to Interact with deployed Contract and Meta Mask
+1.Write Smart Contract Code in IDE \\
+2.Compile Smart Contract Code \\
+3.Connect IDE to MetaMask Account and Deploy the Smart Contract \\
+4.Get ABI Code and Smart Contract Address from Deployment \\
+5.Paste ABI Code and Smart Contract Address in frontend Files \\
+6.Host Frontend Files Locally to Interact with deployed Contract and Meta Mask \\
+\\
 
 
 ## Deployment Network : Sepolia 
+\\
+It is deployed on a testnet network called Sepolia, uses SepoliaETH.\\ 
 
-It is deployed on a testnet network called Sepolia, uses SepoliaETH. 
+## Tests 
 
+1.Valid Test - Manager Adds A room \\
+2.Invalid Test - Manager Tries to Remove a room that doesn't exist \\
