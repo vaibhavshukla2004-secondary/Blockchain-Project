@@ -39,3 +39,19 @@ The manager is the wallet address that deploys the contract.
 Do not commit deployment-specific ABI data or the contract address in source code or other public GitHub files. Keep them in local or deployment-managed configuration that is excluded from version control. The ABI and contract address are not secrets—the ABI describes the public contract interface, and deployed contract addresses are public on-chain—so never use either as a substitute for protecting private keys, seed phrases, or other credentials.
 
 **Before publishing:** the current `index.html` still contains an ABI and a contract address. Move these values to untracked deployment configuration or remove them from the public source before pushing if you want to keep deployment details out of the GitHub repository. Never put wallet private keys or seed phrases in the repository or frontend.
+
+
+## Steps to connect MetaMask and interact with the smart contract
+
+1.Write Smart Contract Code in IDE
+2.Compile Smart Contract Code
+3.Connect IDE to MetaMask Account and Deploy the Smart Contract
+4.Get ABI Code and Smart Contract Address from Deployment 
+5.Paste ABI Code and Smart Contract Address in frontend Files
+6.Host Frontend Files Locally to Interact with deployed Contract and Meta Mask
+
+
+## Deployment Network : Sepolia 
+
+It is deployed on a testnet network called Sepolia, uses SepoliaETH. 
+
